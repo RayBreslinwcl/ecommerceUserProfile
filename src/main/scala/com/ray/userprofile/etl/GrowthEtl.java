@@ -123,24 +123,33 @@ public class GrowthEtl {
          *  GrowthEtl.GrowthLineVo(day=2019-11-29, regCount=50, memberCount=999, orderCount=799, gmv=63870.0)
          *  GrowthEtl.GrowthLineVo(day=2019-11-30, regCount=1, memberCount=1000, orderCount=800, gmv=114.0)
          */
+        //这个逻辑很复杂，看后面会简单
+//        for (int i = 0; i < vos.size(); i++) {
+//            GrowthLineVo growthLineVo = vos.get(i);
+//            BigDecimal gmv = growthLineVo.getGmv();
+//
+//            BigDecimal temp = gmv.add(preGmv);
+//
+//            for (int j = 0; j < i; j++) {
+//                GrowthLineVo prev = vos.get(j);
+//                temp = temp.add(prev.getGmv());
+//            }
+//
+//            totalGmvList.add(temp);
+//        }
+//
+//        // 遍历总量gmv的List，更新vos里面gmv的值:理解
+//        for (int i = 0; i < totalGmvList.size(); i++) {
+//            GrowthLineVo lineVo = vos.get(i);
+//            lineVo.setGmv(totalGmvList.get(i));
+//        }
+        // 更新方法
+        BigDecimal currentGmv=preGmv;
         for (int i = 0; i < vos.size(); i++) {
-            GrowthLineVo growthLineVo = vos.get(i);
-            BigDecimal gmv = growthLineVo.getGmv();
-
-            BigDecimal temp = gmv.add(preGmv);
-
-            for (int j = 0; j < i; j++) {
-                GrowthLineVo prev = vos.get(j);
-                temp = temp.add(prev.getGmv());
-            }
-
-            totalGmvList.add(temp);
-        }
-
-        // 遍历总量gmv的List，更新vos里面gmv的值:理解
-        for (int i = 0; i < totalGmvList.size(); i++) {
-            GrowthLineVo lineVo = vos.get(i);
-            lineVo.setGmv(totalGmvList.get(i));
+            //获取每天统计的数据
+            GrowthLineVo CurrentgrowthLineVo = vos.get(i);
+            currentGmv=currentGmv.add(CurrentgrowthLineVo.getGmv()); //加上当前day的gmv新增
+            CurrentgrowthLineVo.setGmv(currentGmv);
         }
 
         return vos;
