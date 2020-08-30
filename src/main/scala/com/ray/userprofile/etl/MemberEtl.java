@@ -38,6 +38,11 @@ public class MemberEtl {
 
     }
 
+    /**
+     * 统计平台用户性别分布
+     * @param session
+     * @return
+     */
     public static List<MemberSex> memberSexEtl(SparkSession session) {
         // 先用sql得到每个性别的count统计数据
         Dataset<Row> dataset = session.sql(
@@ -54,6 +59,11 @@ public class MemberEtl {
         return result;
     }
 
+    /**
+     * 用户注册渠道
+     * @param session
+     * @return
+     */
     public static List<MemberChannel> memberChannelEtl(SparkSession session) {
         Dataset<Row> dataset = session.sql(
                 "select member_channel as memberChannel, count(id) as channelCount " +
@@ -68,11 +78,20 @@ public class MemberEtl {
         return result;
     }
 
+    /**
+     * 用户是否关注媒体平台
+     * @param session
+     * @return
+     */
     public static List<MemberMpSub> memberMpSubEtl(SparkSession session) {
+        //解释：open_id为空，则没有注册
+        //count里面加if标准判断用法，count(if(判断条件,true统计,null不统计))
+        //理解count if用法，即可理解
         Dataset<Row> sub = session.sql(
                 "select count(if(mp_open_id !='null',true,null)) as subCount, " +
                 " count(if(mp_open_id ='null',true,null)) as unSubCount " +
                 " from ecommerce.t_member");
+
 
         List<String> list = sub.toJSON().collectAsList();
 
@@ -83,24 +102,39 @@ public class MemberEtl {
         return result;
     }
 
+    /**
+     * 用户热度统计
+     * @param session
+     * @return
+     */
     public static MemberHeat memberHeatEtl(SparkSession session) {
         // reg , complete , order , orderAgain, coupon
+        // reg,complete从t_member中取出
         Dataset<Row> reg_complete = session.sql(
                 "select count(if(phone='null',true,null)) as reg," +
                 " count(if(phone !='null',true,null)) as complete " +
                 " from ecommerce.t_member");
+        //采用reg_complete.toJSON().collectAsList()判断，结果是{"reg":0,"complete":1000}
 
+        // order和orderAgain：下过单和下过两次以上单的用户统计
         Dataset<Row> order_again = session.sql(
                 "select count(if(t.orderCount =1,true,null)) as order," +
                 "count(if(t.orderCount >=2,true,null)) as orderAgain from " +
                 "(select count(order_id) as orderCount,member_id from ecommerce.t_order group by member_id) as t");
+        //采用order_again.toJSON().collectAsList()判断，结果是{"order":344,"orderAgain":197}
 
+        // coupon：购买过优惠卷的用户
         Dataset<Row> coupon = session.sql("select count(distinct member_id) as coupon from ecommerce.t_coupon_member ");
+        //采用coupon.toJSON().collectAsList()判断，结果是{"coupon":540}
 
         // 最终，将三张表（注册、复购、优惠券）连在一起
         Dataset<Row> heat = coupon.crossJoin(reg_complete).crossJoin(order_again);
+        // coupon.crossJoin(reg_complete).toJSON().collectAsList() 结果：{"coupon":540,"reg":0,"complete":1000}
+        // coupon.crossJoin(reg_complete).crossJoin(order_again).toJSON().collectAsList() 结果：{"coupon":540,"reg":0,"complete":1000,"order":344,"orderAgain":197}
+
 
         List<String> list = heat.toJSON().collectAsList();
+        //list转为stream，然后后续操作
         List<MemberHeat> result = list.stream()
                 .map(str -> JSON.parseObject(str, MemberHeat.class))
                 .collect(Collectors.toList());
