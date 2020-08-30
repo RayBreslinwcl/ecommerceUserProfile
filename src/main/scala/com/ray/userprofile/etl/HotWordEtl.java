@@ -25,16 +25,20 @@ public class HotWordEtl {
         JavaSparkContext jsc = new JavaSparkContext(sc);
 
         // 数据文件在hdfs上
-        System.setProperty("HADOOP_USER_NAME", "ubuntu");
+        System.setProperty("HADOOP_USER_NAME", "root");
 
         // 用jsc读取hdfs文件，转成java rdd
-        JavaRDD<String> linesRdd = jsc.textFile("hdfs://192.168.99.170:9000/data/SogouQ.sample.txt");
+//        JavaRDD<String> linesRdd = jsc.textFile("hdfs://192.168.0.8:9000/tmp/SogouQ.sample.txt");
+        //因为cdh集群默认是8020端口，进行内部rpc通信
+        JavaRDD<String> linesRdd = jsc.textFile("hdfs://192.168.0.8:8020/tmp/SogouQ.sample.txt");
 
         JavaPairRDD<String, Integer> pairRDD = linesRdd.mapToPair(new PairFunction<String, String, Integer>() {
             @Override
             public Tuple2<String, Integer> call(String s) throws Exception {
                 // 以制表符分隔，取第三个字段
-                String word = s.split("\t")[2];
+//                String word = s.split("\t")[2];
+                // 以制表符分隔，取第一个字段
+                String word = s.split("\t")[0];
                 return new Tuple2<>(word, 1);
             }
         });
@@ -73,5 +77,19 @@ public class HotWordEtl {
         for (Tuple2<String, Integer> hotWordCount : hotWordCounts) {
             System.out.println(hotWordCount._1 + " === count " + hotWordCount._2);
         }
+
+        /**
+         * 结果：
+         * [婚姻法] === count 6
+         * [歌曲爱的奉献] === count 6
+         * [雅芳化妆品] === count 6
+         * [电脑桌面图片下载] === count 6
+         * [断点] === count 5
+         * [瑞丽服饰] === count 5
+         * [职业规划] === count 5
+         * [天亮以后不分手] === count 5
+         * [财经网] === count 5
+         * [qq医生下载] === count 5
+         */
     }
 }
