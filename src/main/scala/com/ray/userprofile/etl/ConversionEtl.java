@@ -18,6 +18,8 @@ public class ConversionEtl {
 
         ConversionVo conversionVo = conversionBehaviorCount(session);
         System.out.println(conversionVo);
+        //结果：
+        //ConversionEtl.ConversionVo(present=1000, click=800, addCart=600, order=541, orderAgain=197, chargeCoupon=186)
     }
 
     public static ConversionVo conversionBehaviorCount(SparkSession session){
@@ -35,9 +37,10 @@ public class ConversionEtl {
                 " where t.orderCount>1");
 
         // 查询充值过的用户
+        // coupon_channel：1 用户购买 2 公司发放
         Dataset<Row> charge = session.sql("select distinct(member_id) as member_id " +
                 "from ecommerce.t_coupon_member where coupon_channel = 1");
-
+        // join的原因：因为储值购买优惠卷的用户不一定是复购的用户，所以这个应该和上一步的复购用户取交集
         Dataset<Row> join = charge.join(
                 orderAgainMember,
                 orderAgainMember.col("member_id")
