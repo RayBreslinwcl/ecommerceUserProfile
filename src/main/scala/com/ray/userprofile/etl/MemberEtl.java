@@ -28,7 +28,9 @@ public class MemberEtl {
         memberVo.setMemberHeat(memberHeat);
 
         //打印到控制台输出
+        //这一步是输出到mysql或者redis，供前端查询
         System.out.println("===========" + JSON.toJSONString(memberVo));
+
     }
 
     public static List<MemberSex> memberSexEtl(SparkSession session) {
@@ -128,10 +130,10 @@ public class MemberEtl {
     }
     @Data
     static class MemberHeat {
-        private Integer reg;    // 只注册，未填写手机号
-        private Integer complete;    // 完善了信息，填了手机号
-        private Integer order;    // 下过订单
-        private Integer orderAgain;    // 多次下单，复购
-        private Integer coupon;    // 购买过优惠券，储值
+        private Integer reg;    // 只注册，未填写手机号的用户统计数
+        private Integer complete;    // 完善了信息，填了手机号的用户统计数
+        private Integer order;    // 下过订单的用户统计数
+        private Integer orderAgain;    // 多次下单，复购的用户统计数
+        private Integer coupon;    // 购买过优惠券，储值的用户统计数
     }
 }
