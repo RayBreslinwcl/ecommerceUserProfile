@@ -30,6 +30,11 @@ public class MemberEtl {
         //打印到控制台输出
         //这一步是输出到mysql或者redis，供前端查询
         System.out.println("===========" + JSON.toJSONString(memberVo));
+        /**
+         * 结果：
+         * ===========
+         * {"memberChannels":[{"channelCount":171,"memberChannel":1},{"channelCount":211,"memberChannel":3},{"channelCount":199,"memberChannel":5},{"channelCount":195,"memberChannel":4},{"channelCount":224,"memberChannel":2}],"memberHeat":{"complete":1000,"coupon":540,"order":344,"orderAgain":197,"reg":0},"memberMpSubs":[{"subCount":799,"unSubCount":201}],"memberSexes":[{"memberSex":-1,"sexCount":201},{"memberSex":1,"sexCount":397},{"memberSex":2,"sexCount":402}]}
+         */
 
     }
 
